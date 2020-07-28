@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include ansible-hwraid"
+      include_role:
+        name: "ansible-hwraid"

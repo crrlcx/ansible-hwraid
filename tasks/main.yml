@@ -1,0 +1,69 @@
+---
+# tasks file for ansible-hwraid
+
+# Copyright (C) 2014-2019 Maciej Delmanowski <drybjed@gmail.com>
+# Copyright (C) 2015-2019 DebOps <https://debops.org/>
+# SPDX-License-Identifier: GPL-3.0-only
+
+- name: Select supported release for current distribution
+  set_fact:
+    hwraid_register_release: |
+      {{ hwraid_release if (hwraid_release in hwraid_distribution_releases[hwraid_distribution])
+                        else hwraid_distribution_releases[hwraid_distribution][0] }}
+
+- name: install | add apt key
+  apt_key:
+    url: 'https://hwraid.le-vert.net/debian/hwraid.le-vert.net.gpg.key'
+    state: present
+  register: hwraid_apt_key
+
+- name: install | add repos
+  apt_repository:
+    repo: "deb http://hwraid.le-vert.net/{{ hwraid_distribution | lower }} {{ hwraid_register_release | lower }} main"
+    state: present
+  register: hwraid_apt_sourcelist
+
+- name: install | update package cache
+  apt:
+    update_cache: true
+  when:
+    - hwraid_apt_key.changed or hwraid_apt_sourcelist.changed
+
+- name: Get list of active kernel modules
+  shell: |
+    set -o nounset -o pipefail -o errexit
+    lsmod | awk '{print $1}'
+  args:
+    executable: /bin/bash
+  register: hwraid_register_modules
+  changed_when: false
+
+- name: Install packages for recognized RAID devices
+  apt:
+    name: '{{ item.1 }}'
+    state: 'present'
+    install_recommends: false
+  with_subelements:
+    - '{{ hwraid_device_database }}'
+    - 'packages'
+  register: hwraid__register_packages
+  until: hwraid__register_packages is succeeded
+  when:
+    - hwraid_register_release is defined
+    - hwraid_register_release | bool
+    - item.0.module not in hwraid_blacklist
+    - item.0.module in hwraid_register_modules.stdout_lines
+
+- name: Make sure service starts at boot
+  service:
+    name: '{{ item.1 }}'
+    state: 'started'
+    enabled: true
+  with_subelements:
+    - '{{ hwraid_device_database }}'
+    - 'daemons'
+  when:
+    - hwraid_register_release is defined
+    - hwraid_register_release | bool
+    - item.0.module not in hwraid_blacklist
+    - item.0.module in hwraid_register_modules.stdout_lines
