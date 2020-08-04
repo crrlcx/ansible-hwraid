@@ -15,7 +15,7 @@ galaxy_info:
   description: 'Configure HWRaid repository and install packages for recognized RAID storage arrays'
   company: 'DebOps'
   license: 'GPL-3.0-only'
-  min_ansible_version: '1.7.0'
+  min_ansible_version: '2.9.0'
   platforms:
     - name: Ubuntu
       versions:

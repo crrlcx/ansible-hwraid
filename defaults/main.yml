@@ -7,6 +7,9 @@
 # .. Copyright (C) 2015-2019 DebOps <https://debops.org/>
 # .. SPDX-License-Identifier: GPL-3.0-only
 
+# Apt|dpkg var
+dpkg_force_overwrite_configs: false
+
 # debops.hwraid default variables
 # ===============================
 # OS distribution used to lookup available releases
@@ -30,70 +33,63 @@ hwraid_device_database:
   # 3Ware Eskalad
   # http://hwraid.le-vert.net/wiki/3Ware
   - module: 3w_xxxx
+    daemon: 3ware-statusd
     packages:
       - tw_cli
       - 3ware-status
-    daemons:
-      - 3ware-statusd
   - module: 3w_9xxx
+    daemon: 3ware-statusd
     packages:
       - tw_cli
       - 3ware-status
-    daemons:
-      - 3ware-statusd
 
   # LSI Fusion MPT SAS
   # http://hwraid.le-vert.net/wiki/LSIFusionMPT
-  - module:   mptsas
+  - module: mptsas
+    daemon: mpt-statusd
     packages:
       - mpt-status
-    daemons:
-      - mpt-statusd
 
   # LSI Fusion MPT SAS2
   # http://hwraid.le-vert.net/wiki/LSIFusionMPTSAS2
   - module: mpt2sas
+    daemon: sas2ircu-statusd
     packages:
       - sas2ircu
       - sas2ircu-status
-    daemons:
-      - sas2ircu-statusd
 
   # LSI MegaRAID
   # http://hwraid.le-vert.net/wiki/LSIMegaRAID
   - module: megaraid_mm
+    daemon: megaraid-statusd
     packages:
       - megactl
       - megaraid-status
-    daemons:
-      - megaraid-statusd
   - module: megaraid_mbox
+    daemon: megaraid-statusd
     packages:
       - megactl
       - megaraid-status
-    daemons:
-      - megaraid-statusd
 
   # LSI MegaRAID SAS
   # http://hwraid.le-vert.net/wiki/LSIMegaRAIDSAS
   - module: megaraid_sas
+    daemon: megaraidsas-statusd
     packages:
       - megactl
       - megaraid-status
-    daemons:
-      - megaraidsas-statusd
 
   # Adaptec AACRaid
   # http://hwraid.le-vert.net/wiki/Adaptec
   - module: aacraid
+    # daemon: aacraid-statusd
     packages:
       - arcconf
       # - aacraid-status
-    daemons: []
-      # - aacraid-statusd
 
   # HP/Compaq SmartArray
   # http://hwraid.le-vert.net/wiki/SmartArray
-  - module:   'cciss'
-    packages: [ 'cciss-vol-status' ]
-    daemons: [ 'cciss-vol-statusd' ]
+  - module: cciss
+    daemon: cciss-vol-statusd
+    packages:
+      - cciss-vol-status

@@ -32,38 +32,45 @@
 - name: Get list of active kernel modules
   shell: |
     set -o nounset -o pipefail -o errexit
-    lsmod | awk '{print $1}'
+    lsmod | cut -d' ' -f 1 -s | sort -u
   args:
     executable: /bin/bash
   register: hwraid_register_modules
   changed_when: false
+  check_mode: false
 
 - name: Install packages for recognized RAID devices
   apt:
-    name: '{{ item.1 }}'
-    state: 'present'
+    name: "{{ item.packages }}"
+    state: latest
     install_recommends: false
-  with_subelements:
-    - '{{ hwraid_device_database }}'
-    - 'packages'
+    force: true
+    force_apt_get: true
+    dpkg_options: "{{ dpkg_force_overwrite_configs | ternary('force-confdef,force-confnew', 'force-confdef,force-confold') }}"
+    update_cache: yes
+    cache_valid_time: 3600
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+    RUNLEVEL: 1
+  loop: "{{ hwraid_device_database }}"
   register: hwraid__register_packages
   until: hwraid__register_packages is succeeded
   when:
     - hwraid_register_release is defined
-    - hwraid_register_release | bool
-    - item.0.module not in hwraid_blacklist
-    - item.0.module in hwraid_register_modules.stdout_lines
+    - hwraid_register_release | length > 0
+    - item.module not in hwraid_blacklist
+    - item.module in hwraid_register_modules.stdout_lines
 
 - name: Make sure service starts at boot
   service:
-    name: '{{ item.1 }}'
+    name: "{{ item.daemon }}"
     state: 'started'
     enabled: true
-  with_subelements:
-    - '{{ hwraid_device_database }}'
-    - 'daemons'
+  loop: "{{ hwraid_device_database }}"
   when:
     - hwraid_register_release is defined
-    - hwraid_register_release | bool
-    - item.0.module not in hwraid_blacklist
-    - item.0.module in hwraid_register_modules.stdout_lines
+    - hwraid_register_release | length > 0
+    - item.module not in hwraid_blacklist
+    - item.module in hwraid_register_modules.stdout_lines
+    - item.daemon is defined
+    - item.daemon | length > 0
