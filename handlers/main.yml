@@ -1,2 +1,28 @@
 ---
 # handlers file for ansible-hwraid
+
+- name: to be sure that systemd config is reload
+  systemd:
+    daemon_reload: true
+  listen:
+    - restart hwraid service
+  when:
+    - ansible_service_mgr == 'systemd'
+    - item.module not in hwraid_blacklist
+    - item.module in hwraid_register_modules.stdout_lines
+    - item.service is defined
+    - item.service | length > 0
+
+- name: handle hwraid service state is 'pgbouncer_service_state'
+  service:
+    name: "{{ item.service }}"
+    state: "{{ hwraid_service_state }}"
+    enabled: true
+  loop: "{{ hwraid_device_database }}"
+  listen:
+    - restart hwraid service
+  when:
+    - item.module not in hwraid_blacklist
+    - item.module in hwraid_register_modules.stdout_lines
+    - item.service is defined
+    - item.service | length > 0

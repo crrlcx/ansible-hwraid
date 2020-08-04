@@ -1,0 +1,40 @@
+---
+- name: install | add apt key
+  apt_key:
+    url: 'https://hwraid.le-vert.net/debian/hwraid.le-vert.net.gpg.key'
+    state: present
+  register: hwraid_apt_key
+
+- name: install | add repos
+  apt_repository:
+    repo: "deb http://hwraid.le-vert.net/{{ hwraid_distribution | lower }} {{ hwraid_register_release | lower }} main"
+    state: present
+  register: hwraid_apt_sourcelist
+
+- name: install | update package cache
+  apt:
+    update_cache: true
+  when:
+    - hwraid_apt_key.changed or hwraid_apt_sourcelist.changed
+
+- name: Install packages for recognized RAID devices
+  apt:
+    name: "{{ item.packages }}"
+    state: latest
+    install_recommends: false
+    force: true
+    force_apt_get: true
+    dpkg_options: "{{ dpkg_force_overwrite_configs | ternary('force-confdef,force-confnew', 'force-confdef,force-confold') }}"
+    update_cache: yes
+    cache_valid_time: 3600
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+    RUNLEVEL: 1
+  loop: "{{ hwraid_device_database }}"
+  register: hwraid__register_packages
+  until: hwraid__register_packages is succeeded
+  when:
+    - item.module not in hwraid_blacklist
+    - item.module in hwraid_register_modules.stdout_lines
+  notify:
+    - restart hwraid service

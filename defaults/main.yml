@@ -27,18 +27,20 @@ hwraid_distribution_releases:
   'Debian': [ 'stretch', 'jessie', 'wheezy', 'squeeze', 'sid' ]
   'Ubuntu': [ 'xenial', 'wily', 'vivid', 'trusty', 'precise' ]
 
+hwraid_service_state: restarted
+
 # List of known RAID device drivers and corresponding packages
 hwraid_device_database:
 
   # 3Ware Eskalad
   # http://hwraid.le-vert.net/wiki/3Ware
   - module: 3w_xxxx
-    daemon: 3ware-statusd
+    service: 3ware-statusd
     packages:
       - tw_cli
       - 3ware-status
   - module: 3w_9xxx
-    daemon: 3ware-statusd
+    service: 3ware-statusd
     packages:
       - tw_cli
       - 3ware-status
@@ -46,14 +48,14 @@ hwraid_device_database:
   # LSI Fusion MPT SAS
   # http://hwraid.le-vert.net/wiki/LSIFusionMPT
   - module: mptsas
-    daemon: mpt-statusd
+    service: mpt-statusd
     packages:
       - mpt-status
 
   # LSI Fusion MPT SAS2
   # http://hwraid.le-vert.net/wiki/LSIFusionMPTSAS2
   - module: mpt2sas
-    daemon: sas2ircu-statusd
+    service: sas2ircu-statusd
     packages:
       - sas2ircu
       - sas2ircu-status
@@ -61,12 +63,12 @@ hwraid_device_database:
   # LSI MegaRAID
   # http://hwraid.le-vert.net/wiki/LSIMegaRAID
   - module: megaraid_mm
-    daemon: megaraid-statusd
+    service: megaraid-statusd
     packages:
       - megactl
       - megaraid-status
   - module: megaraid_mbox
-    daemon: megaraid-statusd
+    service: megaraid-statusd
     packages:
       - megactl
       - megaraid-status
@@ -74,7 +76,7 @@ hwraid_device_database:
   # LSI MegaRAID SAS
   # http://hwraid.le-vert.net/wiki/LSIMegaRAIDSAS
   - module: megaraid_sas
-    daemon: megaraidsas-statusd
+    service: megaraidsas-statusd
     packages:
       - megactl
       - megaraid-status
@@ -82,7 +84,7 @@ hwraid_device_database:
   # Adaptec AACRaid
   # http://hwraid.le-vert.net/wiki/Adaptec
   - module: aacraid
-    # daemon: aacraid-statusd
+    # service: aacraid-statusd
     packages:
       - arcconf
       # - aacraid-status
@@ -90,6 +92,10 @@ hwraid_device_database:
   # HP/Compaq SmartArray
   # http://hwraid.le-vert.net/wiki/SmartArray
   - module: cciss
-    daemon: cciss-vol-statusd
+    service: cciss-vol-statusd
     packages:
       - cciss-vol-status
+
+# Scripts and monitoring
+hwraid_pushgateway_host: localhost
+hwraid_cron_enabled: false
