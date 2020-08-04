@@ -19,11 +19,11 @@ pushgateway_url="http://{{ hwraid_pushgateway_host }}:9091/metrics/job/hardware/
 
 case ${1} in
   'count-all')
-    metric_name='count_all_disks'
+    metric_name='count_all_disk'
     metric_value=$(arcconf getconfig 1 pd | grep -c 'Device is a Hard drive')
   ;;
   'count-failed')
-    metric_name='count_bad_disks'
+    metric_name='count_bad_disk'
     metric_value=$(arcconf getconfig 1 pd | grep ' .State' | grep -c -v 'Online')
   ;;
   *) exit 0

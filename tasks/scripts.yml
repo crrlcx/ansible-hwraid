@@ -12,16 +12,18 @@
   cron:
     name: "{{ item.module }} count all disk"
     hour: '*'
-    minute: '*/5'
+    minute: '*/2'
     user: root
     job: "/usr/local/scripts/{{ item.module }}-disk-status.sh count-all"
     state: "{{ hwraid_cron_enabled | ternary('present', 'absent') }}"
+  become: true
 
 - name: hwraid | create cron job for count failed disk to pushgateway
   cron:
     name: "{{ item.module }} count failed disk"
     hour: '*'
-    minute: '*/5'
+    minute: '*/2'
     user: root
     job: "/usr/local/scripts/{{ item.module }}-disk-status.sh count-failed"
     state: "{{ hwraid_cron_enabled | ternary('present', 'absent') }}"
+  become: true
