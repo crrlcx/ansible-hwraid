@@ -11,7 +11,7 @@
       {{ hwraid_release if (hwraid_release in hwraid_distribution_releases[hwraid_distribution])
                         else hwraid_distribution_releases[hwraid_distribution][0] }}
 
-- name: Get list of active kernel modules
+- name: hwraid | get list of active kernel modules
   shell: |
     set -o nounset -o pipefail -o errexit
     lsmod | cut -d' ' -f 1 -s | sort -u
@@ -21,14 +21,26 @@
   changed_when: false
   check_mode: false
 
-- name: install packages
+- name: hwraid | install packages
   import_tasks: apt.yml
   when:
+    - ansible_os_family == 'Debian'
     - hwraid_register_release is defined
     - hwraid_register_release | length > 0
 
-- name: additional scripts
-  import_tasks: scripts.yml
+- name: hwraid | create scripts directory
+  file:
+    dest: '/usr/local/scripts'
+    state: directory
+    owner: root
+    group: adm
+    mode: 0755
+
+- name: hwraid | additional scripts
+  include_tasks: scripts.yml
+  loop: "{{ hwraid_device_database }}"
   when:
+    - item.module not in hwraid_blacklist
+    - item.module in hwraid_register_modules.stdout_lines
     - hwraid_register_release is defined
     - hwraid_register_release | length > 0
